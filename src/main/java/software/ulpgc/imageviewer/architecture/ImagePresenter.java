@@ -21,6 +21,11 @@ public class ImagePresenter {
             System.out.println(image.id());
             display.paint(new Paint(image.bitmap(), 0));
         });
+        this.display.on((ImageDisplay.Zoom) zoomLevel -> {
+            display.paint(
+                    new Paint(image.bitmap(), display.width())
+            );
+        });
     }
 
     private void released(int offset) {

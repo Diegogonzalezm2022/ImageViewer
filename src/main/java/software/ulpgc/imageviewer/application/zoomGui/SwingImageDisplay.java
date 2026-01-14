@@ -1,4 +1,4 @@
-package software.ulpgc.imageviewer.application.gui;
+package software.ulpgc.imageviewer.application.zoomGui;
 
 import software.ulpgc.imageviewer.architecture.Canvas;
 import software.ulpgc.imageviewer.architecture.ImageDisplay;
@@ -21,6 +21,7 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
     private Shift shift;
     private Released released;
     private Paint[] paints;
+    private ZoomPaint[] zoomPaints;
     private Zoom zoom;
 
     public SwingImageDisplay() {
@@ -37,7 +38,8 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
 
     @Override
     public void zoomPaint(ZoomPaint... paints) {
-
+        this.zoomPaints=paints;
+        this.repaint();
     }
 
     @Override
@@ -47,7 +49,7 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
 
     @Override
     public void changeZoom(int i) {
-
+        SwingImageDisplay.this.zoom.zoomLevel(this.zoomPaints[0].zoomLevel()*100 + i);
     }
 
     private final Map<Integer, BufferedImage> images = new HashMap<>();
@@ -67,15 +69,16 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
     public void paint(Graphics g) {
         g.setColor(Color.GRAY);
         g.fillRect(0,0,this.getWidth(), this.getHeight());
-        for (Paint paint : paints) {
+        for (ZoomPaint paint : zoomPaints) {
             BufferedImage bitmap = toBufferedImage(paint.bitmap());
             Canvas canvas = Canvas.ofSize(this.getWidth(), this.getHeight())
                     .fit(bitmap.getWidth(), bitmap.getHeight());
             int x = (this.getWidth() - canvas.width()) / 2;
             int y = (this.getHeight() - canvas.height()) / 2;
-            g.drawImage(bitmap, x+paint.offset(), y, canvas.width(), canvas.height(), null);
+            g.drawImage(bitmap, (int) (x+paint.offset()+canvas.width()*(1-paint.zoomLevel())/2), (int) (y+canvas.height()*(1-paint.zoomLevel())/2), (int) (canvas.width()*paint.zoomLevel()), (int) (canvas.height()*paint.zoomLevel()), null);
         }
     }
+
 
     private class MouseAdapter implements MouseListener, MouseMotionListener {
         private int x;
@@ -126,11 +129,7 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
         this.released = released;
     }
 
-    @Override
-    public void on(Zoom zoom) {
-        this.zoom=zoom;
-    }
-
+    public void on(Zoom zoom) {this.zoom=zoom;}
 
 }
 
